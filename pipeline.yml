@@ -1,0 +1,95 @@
+### YamlMime:Yaml
+ms.openlocfilehash: 16dc8b4edff051168ef33aca865771632e9e8a6e
+ms.sourcegitcommit: 890d6cbf013cb0c3dc90a3cccc2291181a418a7d
+ms.translationtype: MT
+ms.contentlocale: it-IT
+ms.lasthandoff: 02/09/2022
+ms.locfileid: "138381221"
+trigger:
+- '*'
+#spazio riservato all' utilizzo di variabili
+parameters:
+  percorsoFile: '**/percorsofile'
+  percorsoFileISO: '**/percorsoFileISO'
+  percorsoReleasePrePublish: '**/releasePrePublish'
+  percorsoReleaseSteam: '**/release/steam'
+  percorsoReleaseIso: '**/release/dvd'
+  pesoMassimo: 17GB
+#prebuild
+pool:
+  vmImage: ubuntu-20.04
+  demands:
+  - npm
+  - Directx
+steps:
+- task: UseDotNet@2
+  displayName: Use .NET SDK 5.x
+  inputs:
+    version: 5.x
+- task: Npm@1
+  displayName: Run npm install
+  inputs:
+    verbose: false
+- task: Directx@1
+  displayName: Install Directx
+  inputs:
+    verbose: false
+- task: ControlloCoerenza@1
+  displayName: Controllo Coerenza assets grafici
+  workingDirectory: "$(percorsoFile)/assets/grafica"
+- task: ControlloCoerenza@2
+  displayName: Controllo Coerenza assets audio
+  workingDirectory: "$(percorsoFile)/assets/audio"
+#punto 2: build del gioco da eseguire dopo la prebuild e il controllo degli assets
+- task: DotNetCoreCLI@2
+  displayName: Build the project - Release
+  inputs:
+    command: build
+    arguments: --no-restore --configuration Release --output "$(percorsoReleasePrePublish)"
+    projects: '$(percorsoFile)'
+  executionGroup: 1
+#punto 3: controllo del peso del risultato dopo il controllo di coerenza (da fare in parallelo con il punto 6)
+- script: echo "$(ls - lah $(percorsoReleasePrePublish)" > infoPeso.txt
+  displayName: acquisizione informazioni peso prima del Publish
+- script: controlloPeso -fileDaControllare infoPeso.txt -pesoMassimo '$(pesoMassimo)'
+  displayName: Controllo del peso della release
+#punto 4: release di un artefatto in .zip su steam(da fare in parallelo con il punto 5)
+- task: DotNetCoreCLI@2
+  displayName: Publish the project - Release
+  inputs:
+    command: publish
+    projects: '$(percorsoFile)'
+    publishWebProjects: false
+    arguments: --no-build --configuration Release --output $(percorsoReleaseSteam)
+    zipAfterPublish: true
+  executionGroup: 2
+- task: UploadOnSteam
+  displayName: Caricamento .zip sul marketplace Steam
+  arguments: -credenzialiSteam $(percorsoReleaseSteam)/credenziali.txt  -fileDaCaricare $(percorsoReleaseSteam)/*.zip
+#punto 5: release di un artefatto in .iso su dvd(da fare in parallelo con il punto 4)
+- task: ReleaseArtifactAsISO@1
+  displayName: Trasformazione del progetto in un artefatto .iso
+  arguments: -directoryIniziale "$(percorsoFile)" -outputDirectory "$(percorsoFileISO)"
+  executionGroup: 2
+- task: DotNetCoreCLI@2
+  displayName: Publish the project on DVD - Release
+  inputs:
+    command: publish
+    projects: '$(percorsoFileISO)'
+    publishWebProjects: false
+    arguments: --no-build --configuration Release --output $(percorsoRelaseIso)
+    zipAfterPublish: true
+  dependsOn: Trasformazione del progetto in un artefatto .iso
+  
+#punto 6: Pubblicazione video yt/ immagini su social media (da fare in parallelo con il punto 2)
+- task: PubblicazioneTrailerVideo@1
+  displayName: pubblicazione Trailer
+  inputs:
+    arguments: -credenziali '$(percorsoFile)'/MaterialePubblicitario/credenzialiYT.txt -video '$(percorsoFile)'/MaterialePubblicitario/VideoYT.mp4 -titolo '$(percorsoFile)'/MaterialePubblicitario/titolo.txt -descrizione '$(percorsoFile)'/MaterialePubblicitario/descrizioneVideo.txt
+  executionGroup: 1
+- task: PubblicazionePostInstagram@1
+  displayName: pubblicazione Post
+  inputs:
+  arguments: -credenziali '$(percorsoFile)'/MaterialePubblicitario/credenzialiIG.txt -immagine '$(percorsoFile)'/MaterialePubblicitario/img.png -descrizione '$(percorsoFile)'/MaterialePubblicitario/descrizionePost.txt
+  executionGroup: 1
+
