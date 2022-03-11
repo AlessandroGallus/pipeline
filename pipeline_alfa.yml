@@ -72,14 +72,13 @@ steps:
 
 
 # --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
-#scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory
+#scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory e controllo se il peso è minore del peso Massimo
 - script: find '$(percorsoReleasePrePublish)' -printf '%s'> infoPeso.txt
   displayName: acquisizione informazioni peso prima del Publish
-    
- 
-# --> PUNTO 3b: CONFRONTO TRAMITE IF DEL PESO NEL FILE CON IL PESO STANDARD DI N DVD
-- script:
-  displayName: Controllo del peso della release
+  rules: 
+    if: 'cat infoPeso.txt <= "$(pesoMassimo)"'
+    when: always
+
      
   
 
