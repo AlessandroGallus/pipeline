@@ -74,14 +74,14 @@ steps:
 
 # --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
 #scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory1
-- task: AcquisizionePeso
-   displayName: acquisizione informazioni peso prima del Publish
-    script: find '$(percorsoReleasePrePublish)' -printf '%s'> infoPeso.txt
+- script: find '$(percorsoReleasePrePublish)' -printf '%s'> infoPeso.txt
+  displayName: acquisizione informazioni peso prima del Publish
+    
  
 # --> PUNTO 3b: CONFRONTO TRAMITE IF DEL PESO NEL FILE CON IL PESO STANDARD DI N DVD
-- task: ControlloPeso
+- script:
   displayName: Controllo del peso della release
-    script: 
+     
   
 
 
@@ -91,30 +91,29 @@ steps:
 
 # --> PUNTO 4a: CREO IL FILE DI CONFIGURAZIONE .vdf PER STEAMCMD
 #creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory1/
-- task: createSteamConfigFile@1
-  displayName: Creare il file di configurazione
-   script: printf "\"AppBuild\" \n   {
+- script: printf "\"AppBuild\" \n   {
      \"AppID\" "1000" \n #l'app ID del gioco 
      \"Desc\" \n
      \"Config file for building the game\" \n #descrizione di questa build\\
      \"ContentRoot\" \"../home/gameDirectory1\" \n #root contenente la cartella relativa al gioco
      \"BuildOutput\" \"../home/outputGame/\" \n #cartella di build output per i build logs e build cache files
      \"Deports\"  {\"1001\" \n { \"FileMapping\" \n {
-       \"LocalPath\" \"*\" \n #tutti i file dalla cartella contentroot
-       \"DeportPath\" \".\" \n #mapped into the root of the deport
-       \"recursive\" \"1\" \n }}}} " > /home/gamedirectory1/configGame.vdf #recursive include tutte le sottocartelle
+    \"LocalPath\" \"*\" \n #tutti i file dalla cartella contentroot
+     \"DeportPath\" \".\" \n #mapped into the root of the deport
+      \"recursive\" \"1\" \n }}}} " > /home/gamedirectory1/configGame.vdf #recursive include tutte le sottocartelle
+  displayName: Creare il file di configurazione
+  
 
 # --> PUNTO 4b: INSTALLO STEAMWORK.SDK SUL SISTEMA
-- task: InstallSteamworks@1
+- script: sudo apt install steamworks.sdk
   displayName: Installare steamwork.sdk
-   script: sudo apt install steamworks.sdk
+   
 
 # --> PUNTO 4c: CARICO IL GIOCO SU STEAM
 #!!!!!ATTENZIONE!!!! questo comando va bene per windows ma non per linux cercare steamCMD per linux
 #inserire anche le variabili di nome utente e password
-- task: buildTheGameOnSteam
+- script: tools\ContentBuilder\builder\steamcmd.exe + login <account_name> <password> + run_app_build ../home/gameDirectory1/configGame.vdf + quit
   displaName: carico il gioco
-    script: tools\ContentBuilder\builder\steamcmd.exe + login <account_name> <password> + run_app_build ../home/gameDirectory1/configGame.vdf + quit
    
 
 
@@ -126,18 +125,18 @@ steps:
 
 # --> PUNTO 5a: CREAZIONE DI UN ARTEFATTO ISO
 #script che prende tutto quello che c'è nella directory /home/gameDirectory2 e lo mette in una ISO che chiama game.iso
-- task: ArtifactISO@1
+- script: mkisofs -o game.iso /home/gameDirectory2  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
-   script: mkisofs -o game.iso /home/gameDirectory2  # --> mkisofs -o [nomefile.iso] [percorso_directory]
+   
 
 # --> PUNTO 5b: RELEASE DELL'ARTEFATTO ISO SU DVD
 #vado a montare l'iso su una periferica DVD virtuale su ubuntu
 #nel primo script vado a ceare una cartella in /media che sarà il nostro punto di mount
 #nel secndo script vado a prendere la mia iso in /home/gamedirectory2/game.iso e la monto nel mount point crato prima media/iso
-- task: MountISO@2
+- script: sudo mkdir /media/iso
+  script: sudo mount -t iso9660 -o loop /home/gamedirectory2/game.iso /media/iso
   displayName: Publish the project on DVD
-    script: sudo mkdir /media/iso
-    script: sudo mount -t iso9660 -o loop /home/gamedirectory2/game.iso /media/iso
+    
   
 
 
