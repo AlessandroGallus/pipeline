@@ -22,6 +22,10 @@ variables:
   buildConfiguration: 'Release'
   percorsoFileISO: '**/percorsoFileISO'
   
+  account_name_steam: pinuzzo
+  password_steam: "123456798"
+
+
   percorsoReleaseSteam: '**/release/steam'
   percorsoReleaseIso: '**/release/dvd'
   pesoMassimo: '17408'
@@ -97,9 +101,9 @@ steps:
   executionGroup: 1
 
 # --> PUNTO 4c: CARICO IL GIOCO SU STEAM
-#!!!!!ATTENZIONE!!!! questo comando va bene per windows ma non per linux cercare steamCMD per linux
+
 #inserire anche le variabili di nome utente e password
-- script: tools\ContentBuilder\builder\steamcmd + login <account_name> <password> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
+- script: tools\ContentBuilder\builder\steamcmd + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
   displaName: carico il gioco
   executionGroup: 2
 
