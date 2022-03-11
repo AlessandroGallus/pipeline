@@ -75,6 +75,7 @@ steps:
     command: build
     arguments: --no-restore --configuration Release --output "$(percorsoPreBuild)"
     projects: '$(percorsoFile)'
+  executionGroup: 1
 
 # --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
 #scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory e controllo se il peso è minore del peso Massimo
@@ -98,20 +99,20 @@ steps:
      \"DeportPath\" \".\" \n #mapped into the root of the deport
       \"recursive\" \"1\" \n }}}}  > "$(percorsoReleaseSteam)/configGame.vdf"' #recursive include tutte le sottocarteller
   displayName: Creare il file di configurazione
-  executionGroup: 1
+  executionGroup: 2
 
 # --> PUNTO 4c: CARICO IL GIOCO SU STEAM
 
 #inserire anche le variabili di nome utente e password
 - script: tools\ContentBuilder\builder\steamcmd + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
   displaName: carico il gioco
-  executionGroup: 2
+  executionGroup: 3
 
 # --> PUNTO 5a: CREAZIONE DI UN ARTEFATTO ISO
 #script che prende tutto quello che c'è nella directory $(percorsoPreBuild) e lo mette in una ISO che chiama game.iso
 - script: mkisofs -o game.iso $(percorsoPreBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
-  executionGroup: 1
+  executionGroup: 2
 
 # --> PUNTO 5b: RELEASE DELL'ARTEFATTO ISO SU DVD
 #vado a montare l'iso su una periferica DVD virtuale su ubuntu
@@ -120,17 +121,17 @@ steps:
 - script: sudo mkdir /media/iso
   script: sudo mount -t iso9660 -o loop $(percorsoPreBuild)/game.iso /media/iso
   displayName: Publish the project on DVD
-  executionGroup:  2
+  executionGroup:  3
 
 #punto 6: Pubblicazione video yt/ immagini su social media (da fare in parallelo con il punto 2)
 - task: PubblicazioneTrailerVideo@1
   displayName: pubblicazione Trailer
   inputs:
     arguments: -credenziali '$(percorsoFile)'/MaterialePubblicitario/credenzialiYT.txt -video '$(percorsoFile)'/MaterialePubblicitario/VideoYT.mp4 -titolo '$(percorsoFile)'/MaterialePubblicitario/titolo.txt -descrizione '$(percorsoFile)'/MaterialePubblicitario/descrizioneVideo.txt
-  executionGroup: 3
+  executionGroup: 1
 
 - task: PubblicazionePostInstagram@1
   displayName: pubblicazione Post
   inputs:
     arguments: -credenziali '$(percorsoFile)'/MaterialePubblicitario/credenzialiIG.txt -immagine '$(percorsoFile)'/MaterialePubblicitario/img.png -descrizione '$(percorsoFile)'/MaterialePubblicitario/descrizionePost.txt
-  executionGroup: 3
+  executionGroup: 1
