@@ -26,7 +26,7 @@ variables:
   
   percorsoReleaseSteam: '**/release/steam'
   percorsoReleaseIso: '**/release/dvd'
-  pesoMassimo: 17408
+  pesoMassimo: '17408'
 
 steps:
 - script: dotnet build --configuration $(buildConfiguration)
@@ -110,7 +110,7 @@ steps:
 # --> PUNTO 4c: CARICO IL GIOCO SU STEAM
 #!!!!!ATTENZIONE!!!! questo comando va bene per windows ma non per linux cercare steamCMD per linux
 #inserire anche le variabili di nome utente e password
-- script: tools\ContentBuilder\builder\steamcmd + login <account_name> <password> + run_app_build ../home/gameDirectory1/configGame.vdf + quit
+- script: tools\ContentBuilder\builder\steamcmd + login <account_name> <password> + run_app_build $(percorsoReleasePrePublish)/configGame.vdf + quit
   displaName: carico il gioco
    
 
@@ -122,17 +122,17 @@ steps:
 
 
 # --> PUNTO 5a: CREAZIONE DI UN ARTEFATTO ISO
-#script che prende tutto quello che c'è nella directory /home/gameDirectory2 e lo mette in una ISO che chiama game.iso
-- script: mkisofs -o game.iso /home/gameDirectory2  # --> mkisofs -o [nomefile.iso] [percorso_directory]
+#script che prende tutto quello che c'è nella directory $(percorsoReleasePrePublish) e lo mette in una ISO che chiama game.iso
+- script: mkisofs -o game.iso $(percorsoReleasePrePublish)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
    
 
 # --> PUNTO 5b: RELEASE DELL'ARTEFATTO ISO SU DVD
 #vado a montare l'iso su una periferica DVD virtuale su ubuntu
 #nel primo script vado a ceare una cartella in /media che sarà il nostro punto di mount
-#nel secndo script vado a prendere la mia iso in /home/gamedirectory2/game.iso e la monto nel mount point crato prima media/iso
+#nel secndo script vado a prendere la mia iso in $(percorsoReleasePrePublish)/game.iso e la monto nel mount point crato prima media/iso
 - script: sudo mkdir /media/iso
-  script: sudo mount -t iso9660 -o loop /home/gamedirectory2/game.iso /media/iso
+  script: sudo mount -t iso9660 -o loop $(percorsoReleasePrePublish)/game.iso /media/iso
   displayName: Publish the project on DVD
     
   
