@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 
-#bisogna modificare il controllo del peso utilizando un bel if(directory) > 10GB ecc bisogna vedere la lezione in cui lo spiega a cassandra
+
 
 
 
@@ -26,7 +26,7 @@ variables:
   
   percorsoReleaseSteam: '**/release/steam'
   percorsoReleaseIso: '**/release/dvd'
-  pesoMassimo: 17GB
+  pesoMassimo: 17408
 
 steps:
 - script: dotnet build --configuration $(buildConfiguration)
