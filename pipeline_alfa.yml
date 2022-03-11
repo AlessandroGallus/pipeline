@@ -65,13 +65,24 @@ steps:
     projects: '$(percorsoFile)'
   executionGroup: 1
 
-# --> PUNTO 3a: 
-#qua bisogna cercare su internet come leggere da un file e come fare if su pront per vedere se il peo va bene
-#punto 3: controllo del peso del risultato dopo il controllo di coerenza (da fare in parallelo con il punto 6)
-- script: find '$(percorsoReleasePrePublish)' -printf '%s'> infoPeso.txt
-  displayName: acquisizione informazioni peso prima del Publish
-- script: controlloPeso -fileDaControllare infoPeso.txt -pesoMassimo '$(pesoMassimo)'
+
+
+
+
+
+
+
+# --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
+#scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory1
+- task: AcquisizionePeso
+   displayName: acquisizione informazioni peso prima del Publish
+    script: find '$(percorsoReleasePrePublish)' -printf '%s'> infoPeso.txt
+ 
+# --> PUNTO 3b: CONFRONTO TRAMITE IF DEL PESO NEL FILE CON IL PESO STANDARD DI N DVD
+- task: ControlloPeso
   displayName: Controllo del peso della release
+    script: 
+  
 
 
 
