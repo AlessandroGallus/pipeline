@@ -3,9 +3,6 @@
 # Add steps that run tests, create a NuGet package, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-#informazioni utili: 
-#nella directory /home/gameDirectory1 ci sono i file di gioco per steam
-#nella directory /home/gameDirectory2 ci sono i file di gioco per l'iso
 
 #bisogna modificare il controllo del peso utilizando un bel if(directory) > 10GB ecc bisogna vedere la lezione in cui lo spiega a cassandra
 
@@ -21,10 +18,12 @@ pool:
   - Directx
 
 variables:
+  percorsoFile: '../home/game'
+  percorsoReleasePrePublish: '../home/gameDirectory'
+
   buildConfiguration: 'Release'
-  percorsoFile: '**/percorsofile'
   percorsoFileISO: '**/percorsoFileISO'
-  percorsoReleasePrePublish: '**/releasePrePublish'
+  
   percorsoReleaseSteam: '**/release/steam'
   percorsoReleaseIso: '**/release/dvd'
   pesoMassimo: 17GB
@@ -73,7 +72,7 @@ steps:
 
 
 # --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
-#scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory1
+#scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory
 - script: find '$(percorsoReleasePrePublish)' -printf '%s'> infoPeso.txt
   displayName: acquisizione informazioni peso prima del Publish
     
@@ -90,7 +89,7 @@ steps:
 
 
 # --> PUNTO 4a: CREO IL FILE DI CONFIGURAZIONE .vdf PER STEAMCMD
-#creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory1/
+#creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/
 - script: printf "\"AppBuild\" \n   {
      \"AppID\" "1000" \n #l'app ID del gioco 
      \"Desc\" \n
@@ -112,7 +111,7 @@ steps:
 # --> PUNTO 4c: CARICO IL GIOCO SU STEAM
 #!!!!!ATTENZIONE!!!! questo comando va bene per windows ma non per linux cercare steamCMD per linux
 #inserire anche le variabili di nome utente e password
-- script: tools\ContentBuilder\builder\steamcmd.exe + login <account_name> <password> + run_app_build ../home/gameDirectory1/configGame.vdf + quit
+- script: tools\ContentBuilder\builder\steamcmd + login <account_name> <password> + run_app_build ../home/gameDirectory1/configGame.vdf + quit
   displaName: carico il gioco
    
 
