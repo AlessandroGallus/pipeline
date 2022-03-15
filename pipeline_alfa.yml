@@ -7,11 +7,10 @@ trigger:
 - '*'
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
   demands:
-  - npm
   - directx
-  -steamworks
+  - steamworks
 
 #Dichiarazione delle variabili utilizzate nella pipeline
 variables:
@@ -32,33 +31,32 @@ variables:
 
 #processo di prebuild
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
-
 - task: UseDotNet@2
   displayName: Use .NET SDK 5.x
   inputs:
     version: 5.x
-#controllare se NPM è necessario (PROBABILMENTE NO)
-- task: Npm@1
-  displayName: Run npm install
+
+#aggiungere VSBuild
+
+- script: dotnet build --configuration $(buildConfiguration) --input $(percorsofileinput) --output $(percorsooutputartefatto)
+  displayName: 'dotnet build $(buildConfiguration)'
+
+#installazione di wine per la successiva installazione di directx
+- script: sudo apt install wine64
+  displayName: Install Wine
   inputs:
     verbose: true
+
 #controllare se WINE è necessario perl'installazione di directx (PROBABILMENTE SI)
 - task: Directx@1
   displayName: Install Directx
   inputs:
    verbose: true
-#installazione di steamworks per la pubblicazione su steam
+#installazione di steamworks per la pubblicazione su steam  (da cambiare per windows e spostare sotto publish)
 - script: sudo apt install steamworks.sdk
   displayName: Installare steamwork.sdk
-
-#- task: Npm@1
- # displayName: Run npm install @nodert-win10/windows.graphics.directx@0.2.96
-  #inputs:
-   # verbose: true
-
-
+  inputs:
+    verbose: true
 #tasks controllo coerenza da creare
 - task: ControlloCoerenza@1
   displayName: Controllo Coerenza assets grafici
@@ -79,7 +77,7 @@ steps:
 
 # --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
 #scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory e controllo se il peso è minore del peso Massimo
-- script: find '$(percorsoPreBuild)' -printf '%s'> infoPeso.txt
+- script: du -h '$(percorsoPreBuild)' -printf '%s'> infoPeso.txt
   displayName: acquisizione informazioni peso prima del Publish
   rules: 
     if: 'cat infoPeso.txt <= "$(pesoMassimo)"'
@@ -113,15 +111,6 @@ steps:
 - script: mkisofs -o game.iso $(percorsoPreBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
   executionGroup: 2
-
-# --> PUNTO 5b: RELEASE DELL'ARTEFATTO ISO SU DVD
-#vado a montare l'iso su una periferica DVD virtuale su ubuntu
-#nel primo script vado a ceare una cartella in /media che sarà il nostro punto di mount
-#nel secndo script vado a prendere la mia iso in $(percorsoPreBuild)/game.iso e la monto nel mount point crato prima media/iso
-- script: sudo mkdir /media/iso
-  script: sudo mount -t iso9660 -o loop $(percorsoPreBuild)/game.iso /media/iso
-  displayName: Publish the project on DVD
-  executionGroup:  3
 
 #punto 6: Pubblicazione video yt/ immagini su social media (da fare in parallelo con il punto 2)
 - task: PubblicazioneTrailerVideo@1
