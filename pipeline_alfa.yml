@@ -46,7 +46,7 @@ variables:
 #processo di prebuild
 steps:
 #installazione .NET
-- task: UseDotNet@2
+- task: UseDotNet@1
   displayName: Use .NET SDK 5.x
   inputs:
     version: 5.x
