@@ -16,9 +16,8 @@ pool:
 
 #Dichiarazione delle variabili utilizzate nella pipeline
 variables:
-  percorsoFile: '../home/game'
-  percorsoPreBuild: '../home/gameDirectory'
-  percorsoPostBuild: '../home/gameDirectory2'
+  percorsoPreBuild: '../DirectoryPreBuild'
+  percorsoPostBuild: '../DirectoryPostBuild'
 
   buildConfiguration: 'Release'
   percorsoFileISO: '**/percorsoFileISO'
@@ -32,7 +31,6 @@ variables:
 
   account_name_steam: pinuzzo
   password_steam: "123456798"
-
 
   percorsoReleaseSteam: '**/release/steam'
   percorsoReleaseIso: '**/release/dvd'
@@ -71,7 +69,7 @@ steps:
     createLogFile: false
     logFileVerbosity: 'diagnostic'
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@1
   displayName: Build the project - Release
   inputs:
     command: build
@@ -81,7 +79,7 @@ steps:
 #processo di build
 #punto 2: build del gioco da eseguire dopo la prebuild e il controllo degli assets
 - script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
-  displayName: 'dotnet build $(buildConfiguration)'
+  displayName: dotnet build $(buildConfiguration)
   executionGroup: 1
 
 #fase controllo coerenza file audio/video
