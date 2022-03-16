@@ -51,11 +51,22 @@ steps:
   inputs:
     version: 5.x
 
+#cambiare la politica di esecuzione in powershell
+- powershell: Set-ExecutionPolicy AllSigned
+  displayName: cambiare politica powershell in AllSigned
+
+#installare Chocolatey sulla powershell
+- powershell: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+  displayName: installare chocolately sulla powershell
+
 #installazione di Directx
-- task: Directx@1
-  displayName: Install Directx
-  inputs:
-   verbose: true
+- powershell: choco install directx-sdk
+  displaName: installare directx.sdk
+
+#- task: Directx@1
+#  displayName: Install Directx
+#  inputs:
+#   verbose: true
 
 #aggiunta VSBuild
 - task: VSBuild@1
