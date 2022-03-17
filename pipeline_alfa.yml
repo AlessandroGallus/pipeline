@@ -61,12 +61,7 @@ steps:
 
 #installazione di Directx
 - powershell: choco install directx-sdk
-  displaName: installare directx.sdk
-
-#- task: Directx@1
-#  displayName: Install Directx
-#  inputs:
-#   verbose: true
+  displayName: installare directx.sdk
 
 #aggiunta VSBuild
 - task: VSBuild@1
@@ -132,9 +127,9 @@ steps:
     when: always
 
 #fase di publish
-#installazione di steamworks per la pubblicazione su steam
-- script: sudo install steamworks.sdk
-  displayName: Installare steamwork.sdk
+#installazione di steamcmd per la pubblicazione su steam
+- powershell: choco install -y steamcmd
+  displayName: Installare steamcmd
   inputs:
     verbose: true
 # --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
