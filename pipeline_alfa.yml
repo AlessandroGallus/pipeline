@@ -78,15 +78,15 @@ steps:
     createLogFile: false
     logFileVerbosity: 'diagnostic'
 
+
+#########   PROCESSO DI BUILD   #########
+
 - task: DotNetCoreCLI@1
   displayName: Build the project - Release
   inputs:
     command: build
     arguments: --no-restore --configuration Release --output "$(percorsoPostBuild)"
     projects: '$(percorsoPreBuild)'
-
-
-#########   PROCESSO DI BUILD   #########
 
 # build del gioco
 - script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
