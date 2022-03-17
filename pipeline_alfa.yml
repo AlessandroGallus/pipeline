@@ -48,9 +48,10 @@ variables:
 
 steps:
 #installazione .NET
-- task: UseDotNet@1
+- task: UseDotNet@2
   displayName: Use .NET SDK 5.x
   inputs:
+    packageType: sdk
     version: 5.x
 
 #cambiare la politica di esecuzione in powershell
