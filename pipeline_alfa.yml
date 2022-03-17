@@ -43,7 +43,9 @@ variables:
   playlistVideoYT: samplePlaylist1
   familyFriendlyYT: true
 
-#processo di prebuild
+
+#########   PROCESSO DI PREBUILD   #########
+
 steps:
 #installazione .NET
 - task: UseDotNet@1
@@ -57,7 +59,7 @@ steps:
 
 #installare Chocolatey sulla powershell
 - powershell: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-  displayName: installare chocolately sulla powershell
+  displayName: installazione chocolately sulla powershell
 
 #installazione di Directx
 - powershell: choco install directx-sdk
@@ -82,13 +84,17 @@ steps:
     arguments: --no-restore --configuration Release --output "$(percorsoPostBuild)"
     projects: '$(percorsoPreBuild)'
 
-#processo di build
-#punto 2: build del gioco da eseguire dopo la prebuild e il controllo degli assets
+
+#########   PROCESSO DI BUILD   #########
+
+# build del gioco
 - script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
   displayName: dotnet build $(buildConfiguration)
   executionGroup: 1
 
-#fase controllo coerenza file audio/video
+
+#########   PROCESSO DI CONSISTENZA   #########
+
 #controllo file .png
 - powershell: Write-Host ("$(percorsoFile)"\assets\grafica *.png | measure).Count > ..\Users\counts\NumeroFilePNG.txt
   displayName: Conteggio e controllo numero file .png
@@ -126,13 +132,16 @@ steps:
     if: 'cat ..\Users\counts\NumeroFileWAV.txt -eq "$(numeroFileWAV)"'
     when: always
 
-#fase di publish
+
+##########   FASE DI DEPLOY   #########
+
 #installazione di steamcmd per la pubblicazione su steam
 - powershell: choco install -y steamcmd
   displayName: Installare steamcmd
   inputs:
     verbose: true
-# --> PUNTO 3a: CREO UN FILE TXT IN CUI METTO IL PESO DELLA DIRECTORY DEL GIOCO
+
+#Pubblicazione su steam
 #scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory e controllo se il peso è minore del peso Massimo
 - script: du -h '$(percorsoPreBuild)' -printf '%s'> infoPeso.txt
   displayName: acquisizione informazioni peso prima del Publish
@@ -140,8 +149,7 @@ steps:
     if: 'cat infoPeso.txt -lt "$(pesoMassimo)"'
     when: always
 
-# --> PUNTO 4a: CREO IL FILE DI CONFIGURAZIONE .vdf PER STEAMCMD
-#creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/
+#creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/ che servirà per steamCMD
 - script: echo -e '\"AppBuild\" \n   {
      \"AppID\" "1000" \n #l'app ID del gioco 
      \"Desc\" \n
@@ -156,18 +164,19 @@ steps:
   displayName: Creare il file di configurazione
   executionGroup: 2
 
-# --> PUNTO 4c: CARICO IL GIOCO SU STEAM
-
 #inserire anche le variabili di nome utente e password
 - script: tools\ContentBuilder\builder\steamcmd + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
   displaName: carico il gioco
   executionGroup: 3
 
-# --> PUNTO 5a: CREAZIONE DI UN ARTEFATTO ISO
+#Creazione artefatto ISO
 #script che prende tutto quello che c'è nella directory $(percorsoPreBuild) e lo mette in una ISO che chiama game.iso
 - script: mkisofs -o game.iso $(percorsoPreBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
   executionGroup: 3
+
+
+##########   FASE DI PUBBLICAZIONE AD   ##########
 
 #punto 6: Pubblicazione video yt/ immagini su social media (da fare in parallelo con il punto 2)
 - task: PubblicazioneTrailerVideo@1
