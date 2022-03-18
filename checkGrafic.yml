@@ -4,6 +4,7 @@ parameters:
   numeroFile: number
   extension: number
 
+steps:
 #creazione del programma shell per controllo grafica
 - powershell:  |
       new-item baseGrafica.ps1 -type file -force -value '
