@@ -78,7 +78,7 @@ steps:
     verbosePreference: stop
   displayName: installare directx.sdk
 
-- task: DotNetCoreCLI@1
+- task: DotNetCoreCLI@2
   displayName: Build the project - Release
   inputs:
     command: build
@@ -93,6 +93,18 @@ steps:
 
 
 #########   PROCESSO DI CONSISTENZA   #########
+
+
+#controllo file .png
+template: checkGrafic.yml
+parameters:
+  percorsoPreBuild: $(percorsoPreBuild)
+  numeroFile: $(numeroFilePNG)
+  extension: $(extensionPNG)
+
+
+
+
 
 #creazione del programma shell per controllo grafica
 - powershell:  |
@@ -115,6 +127,13 @@ steps:
      -input1 $(numeroFilePNG)
      -extension $(extensionPNG)
   displayName: controllo file .png
+
+
+
+
+
+
+
 
 #controllo file .gif
 - task: PowerShell@2
