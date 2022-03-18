@@ -63,7 +63,11 @@ steps:
 #  displayName: installazione chocolately sulla powershell
 
 #installazione di Directx
-- powershell: choco install directx-sdk
+- task: PowerShell@2
+  inputs:
+    targetType: inline
+    script: choco install directx-sdk
+    verbosePreference: stop
   displayName: installare directx.sdk
 
 #aggiunta VSBuild
