@@ -23,11 +23,15 @@ variables:
   percorsoFileISO: '**/percorsoFileISO'
   
   numeroFilePNG: 3
-  numeroFileJPG: 2
-  numeroFileGIF: 6
-  numeroFileDDS: 14
-  numeroFIleMP3: 7
-  numeroFileWav: 2
+  extensionPNG: "png"
+  numeroFileGIF: 3
+  extensionGIF: "gif"
+  numeroFileDDS: 4
+  extensionDDS: "dds"
+  numeroFIleMP3: 5
+  extensionMP3: "mp3"
+  numeroFileWav: 7
+  extensionWAV: "wav"
 
   account_name_steam: pinuzzo
   password_steam: "123456798"
@@ -90,51 +94,82 @@ steps:
 
 #########   PROCESSO DI CONSISTENZA   #########
 
+#creazione del programma shell per controllo grafica
+- powershell:  |
+      new-item baseGrafica.ps1 -type file -force -value '
+      param ($input1, $extension) 
+      $input2 = (Get-ChildItem -path $(percorsoPreBuild)\assets\grafica\*.$extension).count
+      if($input1 -ne $input2)
+      {
+        Write-Error "Files with the .$(extension) extension are in a different number from the documentation"
+        exit 1
+      }'
+  displayName: creazione shell program baseGrafica.ps1
+
 #controllo file .png
-- powershell: Write-Host ("$(percorsoFile)"\assets\grafica *.png | measure).Count > ..\Users\counts\NumeroFilePNG.txt
-  displayName: Conteggio e controllo numero file .png
-  rules:
-    if: 'cat ..\Users\counts\NumeroFilePNG.txt -eq "$(numeroFilePNG)"'
-    when: always
-#controllo file .jpg
-- powershell: Write-Host ("$(percorsoFile)"\assets\grafica *.jpg | measure).Count > ..\Users\counts\NumeroFileJPG.txt
-  displayName: Conteggio e controllo numero file .jpg
-  rules:
-    if: 'cat ..\Users\counts\NumeroFileJPG.txt -eq "$(numeroFileJPG)"'
-    when: always
+- task: PowerShell@2
+  inputs:
+   targetType: filePath
+   filePath: $(System.DefaultWorkingDirectory)\baseGrafica.ps1
+   arguments: >
+     -input1 $(numeroFilePNG)
+     -extension $(extensionPNG)
+  displayName: controllo file .png
+
 #controllo file .gif
-- powershell: Write-Host ("$(percorsoFile)"\assets\grafica *.gif | measure).Count > ..\Users\counts\NumeroFileGIF.txt
-  displayName: Conteggio e controllo numero file .gif
-  rules:
-    if: 'cat ..\Users\counts\NumeroFileGIF.txt -eq "$(numeroFileGIF)"'
-    when: always
+- task: PowerShell@2
+  inputs:
+   targetType: filePath
+   filePath: $(System.DefaultWorkingDirectory)\baseGrafica.ps1
+   arguments: >
+     -input1 $(numeroFileGIF)
+     -extension $(extensionGIF)
+  displayName: controllo file .gif
+
 #controllo file .dds
-- powershell: Write-Host ("$(percorsoFile)"\assets\grafica *.dds | measure).Count > ..\Users\counts\NumeroFileDDS.txt
-  displayName: Conteggio e controllo numero file .dds
-  rules:
-    if: 'cat ..\Users\counts\NumeroFileDDS.txt -eq "$(numeroFileDDS)"'
-    when: always
+- task: PowerShell@2
+  inputs:
+   targetType: filePath
+   filePath: $(System.DefaultWorkingDirectory)\baseGrafica.ps1
+   arguments: >
+     -input1 $(numeroFileDDS)
+     -extension $(extensionDDS)
+  displayName: controllo file .dds
+
+#creazione del programma shell per controllo musica
+- powershell:  |
+      new-item baseAudio.ps1 -type file -force -value '
+      param ($input1, $extension) 
+      $input2 = (Get-ChildItem -path $(percorsoPreBuild)\assets\audio\*.$extension).count
+      if($input1 -ne $input2)
+      {
+        Write-Error "Files with the .$(extension) extension are in a different number from the documentation"
+        exit 1
+      }'
+  displayName: creazione shell program baseAudio.ps1
+
 #controllo file .mp3
-- powershell: Write-Host ("$(percorsoFile)"\assets\audio *.mp3 | measure).Count > ..\Users\counts\NumeroFileMP3.txt
-  displayName: Conteggio e controllo numero file .mp3
-  rules:
-    if: 'cat ..\Users\counts\NumeroFileMP3.txt -eq "$(numeroFileMP3)"'
-    when: always
+- task: PowerShell@2
+  inputs:
+   targetType: filePath
+   filePath: $(System.DefaultWorkingDirectory)\baseAudio.ps1
+   arguments: >
+     -input1 $(numeroFileMP3)
+     -extension $(extensionMP3)
+  displayName: controllo file .mp3
+
 #controllo file .wav
-- powershell: Write-Host ("$(percorsoFile)"\assets\audio *.wav | measure).Count > ..\Users\counts\NumeroFileWAV.txt
-  displayName: Conteggio e controllo numero file .wav
-  rules:
-    if: 'cat ..\Users\counts\NumeroFileWAV.txt -eq "$(numeroFileWAV)"'
-    when: always
+- task: PowerShell@2
+  inputs:
+   targetType: filePath
+   filePath: $(System.DefaultWorkingDirectory)\baseAudio.ps1
+   arguments: >
+     -input1 $(numeroFileWAV)
+     -extension $(extensionWAV)
+  displayName: controllo file .wav
 
 
 ##########   FASE DI DEPLOY   #########
-
-#installazione di steamcmd per la pubblicazione su steam
-- powershell: choco install -y steamcmd
-  displayName: Installare steamcmd
-  inputs:
-    verbose: true
 
 #Pubblicazione su steam
 #scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory e controllo se il peso è minore del peso Massimo
@@ -143,6 +178,12 @@ steps:
   rules: 
     if: 'cat infoPeso.txt -lt "$(pesoMassimo)"'
     when: always
+
+#installazione di steamcmd per la pubblicazione su steam
+- powershell: choco install -y steamcmd
+  displayName: Installare steamcmd
+  inputs:
+    verbose: true
 
 #creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/ che servirà per steamCMD
 - script: echo -e '\"AppBuild\" \n   {
