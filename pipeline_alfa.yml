@@ -54,22 +54,6 @@ steps:
     packageType: sdk
     version: 5.x
 
-#cambiare la politica di esecuzione in powershell
-#- powershell: Set-ExecutionPolicy AllSigned
-#  displayName: cambiare politica powershell in AllSigned
-
-#installare Chocolatey sulla powershell
-#- powershell: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-#  displayName: installazione chocolately sulla powershell
-
-#installazione di Directx
-- task: PowerShell@2
-  inputs:
-    targetType: inline
-    script: choco install directx-sdk
-    verbosePreference: stop
-  displayName: installare directx.sdk
-
 #aggiunta VSBuild
 - task: VSBuild@1
   inputs:
@@ -82,8 +66,13 @@ steps:
     createLogFile: false
     logFileVerbosity: 'diagnostic'
 
-
-#########   PROCESSO DI BUILD   #########
+#installazione di Directx
+- task: PowerShell@2
+  inputs:
+    targetType: inline
+    script: choco install directx-sdk
+    verbosePreference: stop
+  displayName: installare directx.sdk
 
 - task: DotNetCoreCLI@1
   displayName: Build the project - Release
@@ -92,6 +81,7 @@ steps:
     arguments: --no-restore --configuration Release --output "$(percorsoPostBuild)"
     projects: '$(percorsoPreBuild)'
 
+#########   PROCESSO DI BUILD   #########
 # build del gioco
 - script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
   displayName: dotnet build $(buildConfiguration)
