@@ -16,8 +16,8 @@ pool:
 
 #Dichiarazione delle variabili utilizzate nella pipeline
 variables:
-  percorsoPreBuild: '../DirectoryPreBuild'
-  percorsoPostBuild: '../DirectoryPostBuild'
+  percorsoPreBuild: '.\DirectoryPreBuild'
+  percorsoPostBuild: '.\DirectoryPostBuild'
 
   buildConfiguration: 'Release'
   percorsoFileISO: '**/percorsoFileISO'
@@ -38,7 +38,7 @@ variables:
 
   percorsoReleaseSteam: '**/release/steam'
   percorsoReleaseIso: '**/release/dvd'
-  pesoMassimo: '17408'
+  pesoMassimo: 17.08
 
   postTypeIG: post
   tagsPostIG: ''
@@ -172,12 +172,22 @@ steps:
 ##########   FASE DI DEPLOY   #########
 
 #Pubblicazione su steam
-#scrivo uno script che crea un file di testo chiamato infoPeso.txt dove inserisce in Byte il peso della directory /home/gamedirectory e controllo se il peso è minore del peso Massimo
-- script: du -h '$(percorsoPreBuild)' -printf '%s'> infoPeso.txt
-  displayName: acquisizione informazioni peso prima del Publish
-  rules: 
-    if: 'cat infoPeso.txt -lt "$(pesoMassimo)"'
-    when: always
+#creazione del programma shell per controllo dimensione
+- powershell: |
+      new-item checkDim.ps1 -type file -force -value '
+      $output = (Get-ChildItem $(percorsoPreBuild)\ -recurse | measure Length -sum).sum / 1GB
+      if($output -gt $(pesoMassimo)){
+        Write-Error "Dimension of directory is too big for an DVD"
+        exit 1
+      }'
+  displayName: creazione dell shell program checkDim.ps1
+
+#Controllo dimensione per caricamento su un DVD
+- task: PowerShell@2
+  inputs:
+    targetType: filePath
+    filePath: $(System.DefaultWorkingDirectory)\checkDim.ps1
+  displayName: controllo dimensione per caricare su DVD
 
 #installazione di steamcmd per la pubblicazione su steam
 - powershell: choco install -y steamcmd
@@ -186,24 +196,37 @@ steps:
     verbose: true
 
 #creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/ che servirà per steamCMD
-- script: echo -e '\"AppBuild\" \n   {
-     \"AppID\" "1000" \n #l'app ID del gioco 
-     \"Desc\" \n
-     \"Config file for building the game\" \n #descrizione di questa build\\
-     \"ContentRoot\" \"$(percorsoPreBuild)\" \n #root contenente la cartella relativa al gioco
-     \"BuildOutput\" \"$(percorsoPostBuild)\" \n #cartella di build output per i build logs e build cache files
-     \"Deports\"  {\"1001\" \n { \"FileMapping\" \n {
+powershell: |
+    new-item configSteamGame.vdf -type file -force -value '
+    "AppBuild"
+    {
+      "AppID" "1000" // your AppID
+      "Desc" "a build script for a game" // internal description for this build
 
-    \"LocalPath\" \"*\" \n #tutti i file dalla cartella contentroot
-     \"DeportPath\" \".\" \n #mapped into the root of the deport
-      \"recursive\" \"1\" \n }}}}  > "$(percorsoReleaseSteam)/configGame.vdf"' #recursive include tutte le sottocarteller
-  displayName: Creare il file di configurazione
-  executionGroup: 2
+      "ContentRoot" "$(percorsoPostBuild)\" // root content folder, relative to location of this file
+      "BuildOutput" ".\logs\" // build output folder for build logs and build cache files
 
-#inserire anche le variabili di nome utente e password
+      "Depots"
+      {
+        "1001" // your DepotID
+        {
+          "FileMapping"
+          {
+            "LocalPath" "*" // all files from contentroot folder
+            "DepotPath" "." // mapped into the root of the depot
+            "recursive" "1" // include all subfolders
+          }
+        }
+      }
+    }'
+displayName: Creare il file di configurazione
+executionGroup: 2
+
+#caricare il gioco
 - script: tools\ContentBuilder\builder\steamcmd + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
   displaName: carico il gioco
   executionGroup: 3
+
 
 #Creazione artefatto ISO
 #script che prende tutto quello che c'è nella directory $(percorsoPreBuild) e lo mette in una ISO che chiama game.iso
