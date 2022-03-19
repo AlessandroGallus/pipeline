@@ -157,7 +157,7 @@ steps:
     verbose: true
 
 #creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/ che servirà per steamCMD
-powershell: |
+- powershell: |
     new-item configSteamGame.vdf -type file -force -value '
     "AppBuild"
     {
@@ -180,11 +180,11 @@ powershell: |
         }
       }
     }'
-displayName: Creare il file di configurazione
-executionGroup: 2
+  displayName: Creare il file di configurazione
+  executionGroup: 2
 
 #caricare il gioco
-- script: tools\ContentBuilder\builder\steamcmd + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
+- script: tools\ContentBuilder\builder\steamcmd.exe + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
   displaName: carico il gioco
   executionGroup: 3
 
