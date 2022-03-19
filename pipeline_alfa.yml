@@ -205,11 +205,11 @@ steps:
 - task: PubblicazioneTrailerVideo@1
   displayName: pubblicazione Trailer
   inputs:
-    arguments: -credenziali '$(percorsoFile)'/MaterialePubblicitario/credenzialiYT.txt -video '$(percorsoFile)'/MaterialePubblicitario/VideoYT.mp4 -titolo '$(percorsoFile)'/MaterialePubblicitario/titolo.txt -descrizione '$(percorsoFile)'/MaterialePubblicitario/descrizioneVideo.txt -playlist '$(playlistVideoYT)' -familyFriendly '$(familyFriendlyYT)'
+    arguments: -credenziali '$(percorsoPostBuild)'/MaterialePubblicitario/credenzialiYT.txt -video '$(percorsoPostBuild)'/MaterialePubblicitario/VideoYT.mp4 -titolo '$(percorsoPostBuild)'/MaterialePubblicitario/titolo.txt -descrizione '$(percorsoPostBuild)'/MaterialePubblicitario/descrizioneVideo.txt -playlist '$(playlistVideoYT)' -familyFriendly '$(familyFriendlyYT)'
   executionGroup: 1
 
 - task: PubblicazionePostInstagram@1
   displayName: pubblicazione Post
   inputs:
-    arguments: -credenziali '$(percorsoFile)'/MaterialePubblicitario/credenzialiIG.txt -immagine '$(percorsoFile)'/MaterialePubblicitario/img.png -postType '$(postTypeIG)' -descrizione '$(percorsoFile)'/MaterialePubblicitario/descrizionePost.txt -tags $(tagsPostIG) -place $(placePostIG)
+    arguments: -credenziali '$(percorsoPostBuild)'/MaterialePubblicitario/credenzialiIG.txt -immagine '$(percorsoPostBuild)'/MaterialePubblicitario/img.png -postType '$(postTypeIG)' -descrizione '$(percorsoPostBuild)'/MaterialePubblicitario/descrizionePost.txt -tags $(tagsPostIG) -place $(placePostIG)
   executionGroup: 1
