@@ -20,7 +20,6 @@ variables:
   percorsoPostBuild: '.\DirectoryPostBuild'
 
   buildConfiguration: 'Release'
-  percorsoFileISO: '**/percorsoFileISO'
   
   numeroFilePNG: '3'
   extensionPNG: "png"
@@ -36,8 +35,6 @@ variables:
   account_name_steam: pinuzzo
   password_steam: "123456798"
 
-  percorsoReleaseSteam: '**/release/steam'
-  percorsoReleaseIso: '**/release/dvd'
   pesoMassimo: 17.08
 
   postTypeIG: post
@@ -85,7 +82,9 @@ steps:
     arguments: --no-restore --configuration Release --output "$(percorsoPostBuild)"
     projects: '$(percorsoPreBuild)'
 
+
 #########   PROCESSO DI BUILD   #########
+
 # build del gioco
 - script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
   displayName: dotnet build $(buildConfiguration)
@@ -138,8 +137,10 @@ steps:
       new-item checkDim.ps1 -type file -force -value '
       $output = (Get-ChildItem $(percorsoPreBuild)\ -recurse | measure Length -sum).sum / 1GB
       if($output -gt $(pesoMassimo)){
+
         Write-Error "Dimension of directory is too big for an DVD"
         exit 1
+
       }'
   displayName: creazione dell shell program checkDim.ps1
 
@@ -148,7 +149,7 @@ steps:
   inputs:
     targetType: filePath
     filePath: $(System.DefaultWorkingDirectory)\checkDim.ps1
-  displayName: controllo dimensione per caricare su DVD
+  displayName: controllo dime per caricare su DVD
 
 #installazione di steamcmd per la pubblicazione su steam
 - powershell: choco install -y steamcmd
@@ -180,12 +181,12 @@ steps:
         }
       }
     }'
-  displayName: Creare il file di configurazione
+  displayName: Creare il file di configurazione per steamCMD
   executionGroup: 2
 
 #caricare il gioco
-- script: tools\ContentBuilder\builder\steamcmd.exe + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPreBuild)/configGame.vdf + quit
-  displaName: carico il gioco
+- script: tools\ContentBuilder\builder\steamcmd.exe + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPostBuild)/configGame.vdf + quit
+  displaName: carico il gioco su steam
   executionGroup: 3
 
 
