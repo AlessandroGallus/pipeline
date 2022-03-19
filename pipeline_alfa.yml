@@ -36,7 +36,7 @@ variables:
   account_name_steam: pinuzzo
   password_steam: "123456798"
 
-  pesoMassimo: 4.7
+  pesoMassimo: 5046586572
 
   postTypeIG: post
   tagsPostIG: ''
@@ -133,7 +133,7 @@ steps:
 #creazione del programma shell per controllo dimensione
 - powershell: |
       new-item checkDim.ps1 -type file -force -value '
-      $output = (Get-ChildItem $(percorsoPreBuild)\ -recurse | measure Length -sum).sum / 1GB
+      $output = (Get-ChildItem $(percorsoPreBuild)\ -recurse | measure Length -sum).sum
       if($output -gt $(pesoMassimo)){
 
         Write-Error "Dimension of directory is too big for an DVD"
