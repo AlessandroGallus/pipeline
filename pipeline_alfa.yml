@@ -188,8 +188,13 @@ steps:
 
 
 #Creazione artefatto ISO
+
+- powershell: Invoke-WebRequest -Uri "https://www.microsoft.com/it-IT/download/confirmation.aspx?id=35" -OutFile "$(PercorsoPostBuild)\dxwebsetup.exe"
+  displayName: download Directx runtime
+
+
 #script che prende tutto quello che c'è nella directory $(percorsoPreBuild) e lo mette in una ISO che chiama game.iso
-- script: mkisofs -o game.iso $(percorsoPreBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
+- script: mkisofs -o game.iso $(percorsoPostBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
   executionGroup: 3
 
