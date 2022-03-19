@@ -35,7 +35,7 @@ variables:
   account_name_steam: pinuzzo
   password_steam: "123456798"
 
-  pesoMassimo: 17.08
+  pesoMassimo: 4.7
 
   postTypeIG: post
   tagsPostIG: ''
@@ -82,15 +82,6 @@ steps:
     arguments: --no-restore --configuration Release --output "$(percorsoPostBuild)"
     projects: '$(percorsoPreBuild)'
 
-
-#########   PROCESSO DI BUILD   #########
-
-# build del gioco
-- script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
-  displayName: dotnet build $(buildConfiguration)
-  executionGroup: 1
-
-
 #########   PROCESSO DI CONSISTENZA   #########
 
 #controllo file .png
@@ -128,6 +119,12 @@ steps:
     numeroFile: $(numeroFileWAV)
     extension: $(extensionWAV)
 
+#########   PROCESSO DI BUILD   #########
+
+# build del gioco
+- script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
+  displayName: dotnet build $(buildConfiguration)
+  executionGroup: 1
 
 ##########   FASE DI DEPLOY   #########
 
