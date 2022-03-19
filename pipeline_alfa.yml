@@ -180,18 +180,16 @@ steps:
     }'
   displayName: Creare il file di configurazione per steamCMD
 
+#script per il download del runtime di DirectX per l'inserimento nel file ISO
+- powershell: Invoke-WebRequest -Uri "https://www.microsoft.com/it-IT/download/confirmation.aspx?id=35" -OutFile "$(PercorsoPostBuild)\dxwebsetup.exe"
+  displayName: download Directx runtime
+
 #caricare il gioco
 - script: tools\ContentBuilder\builder\steamcmd.exe + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPostBuild)/configGame.vdf + quit
   displaName: carico il gioco su steam
   executionGroup: 2
 
-
 #Creazione artefatto ISO
-
-- powershell: Invoke-WebRequest -Uri "https://www.microsoft.com/it-IT/download/confirmation.aspx?id=35" -OutFile "$(PercorsoPostBuild)\dxwebsetup.exe"
-  displayName: download Directx runtime
-
-
 #script che prende tutto quello che c'è nella directory $(percorsoPreBuild) e lo mette in una ISO che chiama game.iso
 - script: mkisofs -o game.iso $(percorsoPostBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
