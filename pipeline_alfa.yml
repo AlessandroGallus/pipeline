@@ -22,15 +22,15 @@ variables:
   buildConfiguration: 'Release'
   percorsoFileISO: '**/percorsoFileISO'
   
-  numeroFilePNG: 3
+  numeroFilePNG: '3'
   extensionPNG: "png"
-  numeroFileGIF: 3
+  numeroFileGIF: '6'
   extensionGIF: "gif"
-  numeroFileDDS: 4
+  numeroFileDDS: '4'
   extensionDDS: "dds"
-  numeroFIleMP3: 5
+  numeroFileMP3: '5'
   extensionMP3: "mp3"
-  numeroFileWav: 7
+  numeroFileWAV: '7'
   extensionWAV: "wav"
 
   account_name_steam: pinuzzo
@@ -94,98 +94,40 @@ steps:
 
 #########   PROCESSO DI CONSISTENZA   #########
 
-
 #controllo file .png
-template: checkGrafic.yml
-parameters:
-  percorsoPreBuild: $(percorsoPreBuild)
-  numeroFile: $(numeroFilePNG)
-  extension: $(extensionPNG)
-
-
-
-
-
-#creazione del programma shell per controllo grafica
-- powershell:  |
-      new-item baseGrafica.ps1 -type file -force -value '
-      param ($input1, $extension) 
-      $input2 = (Get-ChildItem -path $(percorsoPreBuild)\assets\grafica\*.$extension).count
-      if($input1 -ne $input2)
-      {
-        Write-Error "Files with the .$(extension) extension are in a different number from the documentation"
-        exit 1
-      }'
-  displayName: creazione shell program baseGrafica.ps1
-
-#controllo file .png
-- task: PowerShell@2
-  inputs:
-   targetType: filePath
-   filePath: $(System.DefaultWorkingDirectory)\baseGrafica.ps1
-   arguments: >
-     -input1 $(numeroFilePNG)
-     -extension $(extensionPNG)
-  displayName: controllo file .png
-
-
-
-
-
-
-
+- template: checkGrafic.yml
+  parameters:
+    percorsoPreBuild: $(percorsoPreBuild)
+    numeroFile: $(numeroFilePNG)
+    extension: $(extensionPNG)
 
 #controllo file .gif
-- task: PowerShell@2
-  inputs:
-   targetType: filePath
-   filePath: $(System.DefaultWorkingDirectory)\baseGrafica.ps1
-   arguments: >
-     -input1 $(numeroFileGIF)
-     -extension $(extensionGIF)
-  displayName: controllo file .gif
+- template: checkGrafic.yml
+  parameters:
+    percorsoPreBuild: $(percorsoPreBuild)
+    numeroFile: $(numeroFileGIF)
+    extension: $(extensionGIF)
 
 #controllo file .dds
-- task: PowerShell@2
-  inputs:
-   targetType: filePath
-   filePath: $(System.DefaultWorkingDirectory)\baseGrafica.ps1
-   arguments: >
-     -input1 $(numeroFileDDS)
-     -extension $(extensionDDS)
-  displayName: controllo file .dds
-
-#creazione del programma shell per controllo musica
-- powershell:  |
-      new-item baseAudio.ps1 -type file -force -value '
-      param ($input1, $extension) 
-      $input2 = (Get-ChildItem -path $(percorsoPreBuild)\assets\audio\*.$extension).count
-      if($input1 -ne $input2)
-      {
-        Write-Error "Files with the .$(extension) extension are in a different number from the documentation"
-        exit 1
-      }'
-  displayName: creazione shell program baseAudio.ps1
+- template: checkGrafic.yml
+  parameters:
+    percorsoPreBuild: $(percorsoPreBuild)
+    numeroFile: $(numeroFileDDS)
+    extension: $(extensionDDS)
 
 #controllo file .mp3
-- task: PowerShell@2
-  inputs:
-   targetType: filePath
-   filePath: $(System.DefaultWorkingDirectory)\baseAudio.ps1
-   arguments: >
-     -input1 $(numeroFileMP3)
-     -extension $(extensionMP3)
-  displayName: controllo file .mp3
+- template: checkAudio.yml
+  parameters:
+    percorsoPreBuild: $(percorsoPreBuild)
+    numeroFile: $(numeroFileMP3)
+    extension: $(extensionMP3)
 
 #controllo file .wav
-- task: PowerShell@2
-  inputs:
-   targetType: filePath
-   filePath: $(System.DefaultWorkingDirectory)\baseAudio.ps1
-   arguments: >
-     -input1 $(numeroFileWAV)
-     -extension $(extensionWAV)
-  displayName: controllo file .wav
+- template: checkAudio.yml
+  parameters:
+    percorsoPreBuild: $(percorsoPreBuild)
+    numeroFile: $(numeroFileWAV)
+    extension: $(extensionWAV)
 
 
 ##########   FASE DI DEPLOY   #########
