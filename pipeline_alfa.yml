@@ -179,12 +179,11 @@ steps:
       }
     }'
   displayName: Creare il file di configurazione per steamCMD
-  executionGroup: 2
 
 #caricare il gioco
 - script: tools\ContentBuilder\builder\steamcmd.exe + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPostBuild)/configGame.vdf + quit
   displaName: carico il gioco su steam
-  executionGroup: 3
+  executionGroup: 2
 
 
 #Creazione artefatto ISO
@@ -196,7 +195,7 @@ steps:
 #script che prende tutto quello che c'è nella directory $(percorsoPreBuild) e lo mette in una ISO che chiama game.iso
 - script: mkisofs -o game.iso $(percorsoPostBuild)  # --> mkisofs -o [nomefile.iso] [percorso_directory]
   displayName: Trasformazione del progetto in un artefatto .iso
-  executionGroup: 3
+  executionGroup: 2
 
 
 ##########   FASE DI PUBBLICAZIONE AD   ##########
