@@ -7,7 +7,7 @@ trigger:
 - '*'
 
 pool:
-  vmImage: windows-latest
+  vmImage: windows-2019
   demands:
   - directx
   - steamworks
@@ -149,46 +149,91 @@ steps:
     filePath: $(System.DefaultWorkingDirectory)\checkDim.ps1
   displayName: controllo dime per caricare su DVD
 
-#installazione di steamcmd per la pubblicazione su steam
-- powershell: choco install -y steamcmd
-  displayName: Installare steamcmd
-  inputs:
-    verbose: true
+#download di steamworks_sdk per la pubblicazione su steam
+- powershell: Invoke-WebRequest -Uri "https://partner.steamgames.com/downloads/steamworks_sdk_153a.zip" -OutFile ( New-Item -Path "$(System.DefaultWorkingDirectory)\steamworks_sdk\steamworks_sdk_153a.zip" -Force )
+  displayName: Download steamworks_sdk
 
-#creo tramite script il file di configurazione configGame.vdf e lo inserisco nella cartella home/gamedirectory/ che servirà per steamCMD
+#unzip steamworks_sdk
+- task: ExtractFiles@1
+  inputs:
+    archiveFilePatterns: $(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a.zip
+    destinationFolder: $(System.DefaultWorkingDirectory)\steamsdk\
+    cleanDestinationFolder: false
+    displayName: unzip steamworks_sdk
+
+#copio i file del gioco in steamworks_sdk
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(percorsoPostBuild)
+    contents: '**' 
+    targetFolder: $(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\content
+    cleanTargetFolder: true
+    displayName: copio i file del gioco in steamworks_sdk
+
+#pulire la directory prima di immettere gli script
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: $(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\scripts\
+    Contents: '**/*'
+  displayName: pulire la directory prima di immettere gli script
+
+#creo primo script per steamworks_sdk
 - powershell: |
-    new-item configSteamGame.vdf -type file -force -value '
+    new-item $(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\scripts\app_build_1946.vdf -type file -force -value '
     "AppBuild"
     {
-      "AppID" "1000" // your AppID
-      "Desc" "a build script for a game" // internal description for this build
-
-      "ContentRoot" "$(percorsoPostBuild)\" // root content folder, relative to location of this file
-      "BuildOutput" ".\logs\" // build output folder for build logs and build cache files
+      "AppID" "1946" // Your AppID
+      "Desc" "Game of the YEAR" // internal description for this build
+      "Preview" "1" // 0: nothing preview 1: make this a preview build only, nothing is uploaded
+      "Local" "" // put content on local content server instead of uploading to Steam
+      "SetLive" "AlphaTest" // set this build live on beta branch AlphaTest
+      "ContentRoot" "${{System.DefaultWorkingDirectory}}\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\content" // content root folder relative to this script file
+      "BuildOutput" "${{System.DefaultWorkingDirectory}}\steamsdk\build_output\" // put build cache and log files on different drive for better performance
 
       "Depots"
       {
-        "1001" // your DepotID
-        {
-          "FileMapping"
-          {
-            "LocalPath" "*" // all files from contentroot folder
-            "DepotPath" "." // mapped into the root of the depot
-            "recursive" "1" // include all subfolders
-          }
-        }
+        // file mapping instructions for each depot are in separate script files
+        "19461" "depot_build_19461.vdf"
       }
     }'
-  displayName: Creare il file di configurazione per steamCMD
+  displayName: creo script App Build per steamworks_sdk
 
-#script per il download del runtime di DirectX per l'inserimento nel file ISO
-- powershell: Invoke-WebRequest -Uri "https://www.microsoft.com/it-IT/download/confirmation.aspx?id=35" -OutFile "$(PercorsoPostBuild)\dxwebsetup.exe"
-  displayName: download Directx runtime
+#creo secondo script per steamworks_sdk
+- powershell: |
+    new-item $(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\scripts\depot_build_19461.vdf -type file -force -value '
+    "DepotBuild"
+    {
+      // Set your assigned depot ID here
+      "DepotID" "19461"
+
+      // absolute path to your content folder
+      "contentroot" "${{System.DefaultWorkingDirectory}}\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\content"
+
+      // include all files recursivley
+      "FileMapping"
+      {
+        // This can be a full path, or a path relative to ContentRoot
+        "LocalPath" "*"
+
+        // This is a path relative to the install folder of your game
+        "DepotPath" "."
+
+        // If LocalPath contains wildcards, setting this means that all
+        // matching files within subdirectories of LocalPath will also
+        // be included.
+        "Recursive" "1"
+      }
+    }'
+  displayName: creo script DeportBild per steamworks_sdk
 
 #caricare il gioco
-- script: tools\ContentBuilder\builder\steamcmd.exe + login <"$(account_name_steam)"> <"$(password_steam)"> + run_app_build $(percorsoPostBuild)/configGame.vdf + quit
-  displaName: carico il gioco su steam
+- script: '$(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\builder\steamcmd.exe +login "$(account_name_steam)" "$(password_steam)" +run_app_build $(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a\sdk\tools\ContentBuilder\scripts\app_build_1946.vdf +quit'
+  displayName: carico il gioco su steam
   executionGroup: 2
+
+  #script per il download del runtime di DirectX per l'inserimento nel file ISO
+- powershell: Invoke-WebRequest -Uri "https://www.microsoft.com/it-IT/download/confirmation.aspx?id=35" -OutFile "$(PercorsoPostBuild)\dxwebsetup.exe"
+  displayName: download Directx runtime
 
 #Creazione artefatto ISO
 
@@ -197,7 +242,7 @@ steps:
   displayName: installazione di powerISO
 
 #script che prende tutto quello che c'è nella directory $(percorsoPostBuild) e lo mette in una ISO che chiama game.iso
-- script: "c:\Program Files\PowerISO\piso.exe" create -o $(System.DefaultWorkingDirectory)\game.iso -add $(percorsoPostBuild) /
+- script: '"c:\Program Files\PowerISO\piso.exe" create -o $(System.DefaultWorkingDirectory)\game.iso -add $(percorsoPostBuild) /'
   displayName: Trasformazione del progetto in un artefatto .iso
   executionGroup: 2
 
