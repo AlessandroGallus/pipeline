@@ -83,6 +83,7 @@ steps:
     arguments: --no-restore --configuration Release --output "$(percorsoPostBuild)"
     projects: '$(percorsoPreBuild)'
 
+
 #########   PROCESSO DI CONSISTENZA   #########
 
 #controllo file .png
@@ -120,12 +121,14 @@ steps:
     numeroFile: $(numeroFileWAV)
     extension: $(extensionWAV)
 
+
 #########   PROCESSO DI BUILD   #########
 
 # build del gioco
 - script: dotnet build --configuration $(buildConfiguration) --input $(percorsoPreBuild) --output $(percorsoPostBuild)
   displayName: dotnet build $(buildConfiguration)
   executionGroup: 1
+
 
 ##########   FASE DI DEPLOY   #########
 
