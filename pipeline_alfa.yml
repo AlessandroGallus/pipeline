@@ -129,7 +129,6 @@ steps:
 
 ##########   FASE DI DEPLOY   #########
 
-#Pubblicazione su steam
 #creazione del programma shell per controllo dimensione
 - powershell: |
       new-item checkDim.ps1 -type file -force -value '
@@ -149,6 +148,7 @@ steps:
     filePath: $(System.DefaultWorkingDirectory)\checkDim.ps1
   displayName: controllo dime per caricare su DVD
 
+#Pubblicazione su steam
 #download di steamworks_sdk per la pubblicazione su steam
 - powershell: Invoke-WebRequest -Uri "https://partner.steamgames.com/downloads/steamworks_sdk_153a.zip" -OutFile ( New-Item -Path "$(System.DefaultWorkingDirectory)\steamworks_sdk\steamworks_sdk_153a.zip" -Force )
   displayName: Download steamworks_sdk
