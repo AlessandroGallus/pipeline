@@ -7,7 +7,7 @@ trigger:
 - '*'
 
 pool:
-  vmImage: windows-2019
+  vmImage: windows-latest
   demands:
   - directx
   - steamworks
@@ -162,7 +162,7 @@ steps:
 #Pubblicazione su steam
 #download di steamworks_sdk per la pubblicazione su steam
 - powershell: Invoke-WebRequest -Uri "https://partner.steamgames.com/downloads/steamworks_sdk_153a.zip" -OutFile ( New-Item -Path "$(System.DefaultWorkingDirectory)\steamsdk\steamworks_sdk_153a.zip" -Force )
-  displayName: Download steamworks_sdk
+  displayName: Download steamworks_sdk--
 
 #unzip steamworks_sdk
 - task: ExtractFiles@1
